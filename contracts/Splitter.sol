@@ -14,6 +14,7 @@ contract Splitter is Activatable{
 
     //set the address of the contract when it is instantiated
     constructor(address A, address payable B, address payable C) public {
+        require(A!=B||A!=C||B!=C,"A,B,C have to be different addresses");
         splitterAddress = address(this);
         Alice = A;
         Bob = B;
@@ -27,6 +28,8 @@ contract Splitter is Activatable{
 
     //set the addresses of A,B & C
     function setPartiesInvolved(address A, address payable B, address payable C) public requireOwner ifDeactivated{
+        require(A!=B||A!=C||B!=C,"These have to be different addresses");
+        require(A!=Alice||B!=Bob||C!=Carol,"The addresses are already existing");
         Alice = A;Bob = B;Carol = C;
     }
 
