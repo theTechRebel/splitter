@@ -30,19 +30,24 @@ contract Activatable is Owned{
     }
 
     //modifier function - only execute some features of contract is activated
-    modifier ifRunning(){
+    modifier ifActivated(){
         require(activated,"Contract is not activated");
         _;
     }
 
+    //modifier function - only execute some features of contract is deactivated
+    modifier ifDeactivated(){
+        require(!activated,"Contract is running, deactiavte first");
+        _;
+    }
+
     //stops the contract only if the owner calls it and only if the contract is activated
-    function deactivateContract() public requireOwner ifRunning {
+    function deactivateContract() public requireOwner ifActivated {
         activated = false;
     }
 
     //activates the contract only if the owner wills it
-    function activateContract() public requireOwner{
-        require(!activated,"Contract is already activated");
+    function activateContract() public requireOwner ifDeactivated{
         activated = true;
     }
 
@@ -58,8 +63,8 @@ contract Splitter is Activatable{
 
     //The parties involved in the contract
     address public Alice;
-    address public Carol;
-    address public Bob;
+    address payable public Carol;
+    address payable public Bob;
 
 
     //set the address of the contract when it is instantiated
@@ -72,5 +77,28 @@ contract Splitter is Activatable{
         return splitterAddress.balance;
     }
 
+    //set the addresses of A,B & C
+    function setPartiesInvolved(address A, address payable B, address payable C) public requireOwner ifDeactivated{
+        Alice = A;Bob = B;Carol = C;
+    }
 
+    //get the Balance of the 3 parties
+    function getBobsBalance() public view returns(uint balance){
+        return Bob.balance;
+    }
+    function getAliceBalance() public view returns(uint balance){
+        return Alice.balance;
+    }
+    function getCarolBalance() public view returns(uint balance){
+        return Carol.balance;
+    }
+
+    //function to split ether
+    function splitEther() public ifActivated  payable{
+        require(Alice == msg.sender,"You are not allowed to split your Ether");
+        require(msg.value>0,"You sent nothing to split");
+        assert((msg.value/2) <= msg.value);
+        Bob.transfer(msg.value/2);
+        Carol.transfer(msg.value/2);
+    }
 }
