@@ -21,19 +21,56 @@ contract Owned{
     }
 }
 
-contract Splitter is Owned{
+contract Activatable is Owned{
+    bool internal activated; //current state of the contract
+
+    //upon instantiation set the contract to activated
+    constructor() public{
+        activated = true;
+    }
+
+    //modifier function - only execute some features of contract is activated
+    modifier ifRunning(){
+        require(activated,"Contract is not activated");
+        _;
+    }
+
+    //stops the contract only if the owner calls it and only if the contract is activated
+    function deactivateContract() public requireOwner ifRunning {
+        activated = false;
+    }
+
+    //activates the contract only if the owner wills it
+    function activateContract() public requireOwner{
+        require(!activated,"Contract is already activated");
+        activated = true;
+    }
+
+    //get the current status of the contract
+    function isActivated() public view returns(bool actiavted){
+        return activated;
+    }
+}
+
+contract Splitter is Activatable{
     //the address of this contract
     address public splitterAddress;
+
+    //The parties involved in the contract
     address public Alice;
     address public Carol;
     address public Bob;
 
 
+    //set the address of the contract when it is instantiated
     constructor() public {
         splitterAddress = address(this);
     }
 
+    //get the balance of the contract -  necessary for the front end
     function getBalance() public view returns(uint balance){
         return splitterAddress.balance;
     }
+
+
 }
