@@ -1,61 +1,6 @@
 pragma solidity ^0.5.0;
 
-contract Owned{
-    //identifies the owner of the contract / admin
-    address internal owner;
-
-    //set the owner of the contract
-    constructor() public{
-        owner = msg.sender;
-    }
-
-    //a modifier that only the admin can do something
-    modifier  requireOwner() {
-        require(owner == msg.sender,"You are not the owner");
-        _;
-    }
-
-    //only the current owner should be able to change owner
-    function changeOwner(address newOwner) public requireOwner{
-        owner = newOwner;
-    }
-}
-
-contract Activatable is Owned{
-    bool internal activated; //current state of the contract
-
-    //upon instantiation set the contract to activated
-    constructor() public{
-        activated = true;
-    }
-
-    //modifier function - only execute some features of contract is activated
-    modifier ifActivated(){
-        require(activated,"Contract is not activated");
-        _;
-    }
-
-    //modifier function - only execute some features of contract is deactivated
-    modifier ifDeactivated(){
-        require(!activated,"Contract is running, deactiavte first");
-        _;
-    }
-
-    //stops the contract only if the owner calls it and only if the contract is activated
-    function deactivateContract() public requireOwner ifActivated {
-        activated = false;
-    }
-
-    //activates the contract only if the owner wills it
-    function activateContract() public requireOwner ifDeactivated{
-        activated = true;
-    }
-
-    //get the current status of the contract
-    function isActivated() public view returns(bool actiavted){
-        return activated;
-    }
-}
+import "./Activatable.sol";
 
 contract Splitter is Activatable{
     //the address of this contract
@@ -68,8 +13,11 @@ contract Splitter is Activatable{
 
 
     //set the address of the contract when it is instantiated
-    constructor() public {
+    constructor(address A, address payable B, address payable C) public {
         splitterAddress = address(this);
+        Alice = A;
+        Bob = B;
+        Carol = C;
     }
 
     //get the balance of the contract -  necessary for the front end
