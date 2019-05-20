@@ -3,8 +3,6 @@ pragma solidity ^0.5.0;
 import "./Activatable.sol";
 
 contract Splitter is Activatable{
-    //the address of this contract
-    address payable public splitterAddress;
 
     //The parties involved in the contract
     address payable public Alice;
@@ -15,26 +13,25 @@ contract Splitter is Activatable{
     uint public CarolsBalance;
     uint public BobsBalance;
 
+    event LogsplitEther(address sender,uint amount,uint toBob, uint toCarol);
+    event LogwithdrawEther(address sender,uint amount);
+    event LogBalanceAfterTransaction(address reciever,uint amount);
+
 
     //set the address of the contract when it is instantiated
     constructor(address payable A, address payable B, address payable C) public {
+        require(A!=address(0)||B!=address(0)||C!=address(0),"One of your addresses is invalid");
         require(A!=B||A!=C||B!=C,"A,B,C have to be different addresses");
-        splitterAddress = address(uint160(address(this)));
         Alice = A;
-        Bob = B;
-        Carol = C;
+        Bob = B;BobsBalance = 0;
+        Carol = C;CarolsBalance = 0;
+        emit LogBalanceAfterTransaction(Bob,BobsBalance);
+        emit LogBalanceAfterTransaction(Carol,CarolsBalance);
     }
 
     //get the balance of the contract -  necessary for the front end
-    function getBalance() public view returns(uint balance){
-        balance = splitterAddress.balance;
-    }
-
-    //set the addresses of A,B & C
-    function setPartiesInvolved(address payable A, address payable B, address payable C) public requireOwner ifDeactivated{
-        require(A!=B||A!=C||B!=C,"These have to be different addresses");
-        require(A!=Alice||B!=Bob||C!=Carol,"The addresses are already existing");
-        Alice = A;Bob = B;Carol = C;
+    function getContractAddress() public view returns(address thisAddress){
+        thisAddress = address(this);
     }
 
     //get the Balance of the 3 parties
@@ -49,31 +46,33 @@ contract Splitter is Activatable{
     }
 
     //function to split ether
-    function splitEther() public ifActivated  payable{
+    function splitEther() public ifAlive ifActivated  payable{
         require(Alice == msg.sender,"You are not allowed to split your Ether");
         require(msg.value>0,"You sent nothing to split");
         assert((msg.value/2) <= msg.value);
 
-        BobsBalance += uint(msg.value/2);
-        CarolsBalance += uint(msg.value/2);
+        BobsBalance += (msg.value/2);
+        CarolsBalance += (msg.value/2);
 
-        splitterAddress.transfer(msg.value);
+        emit LogsplitEther(msg.sender,msg.value,(msg.value/2), (msg.value/2));
+        emit LogBalanceAfterTransaction(Bob,BobsBalance);
+        emit LogBalanceAfterTransaction(Carol,CarolsBalance);
     }
 
     //withdraw ether for Bob & Carol
-    function withdrawEtherBob()public ifActivated {
+    function withdrawEtherBob()public {
         require(Bob == msg.sender,"You are not Bob");
         Bob.transfer(BobsBalance);
+        emit LogwithdrawEther(msg.sender,BobsBalance);
+        BobsBalance = 0;
+        emit LogBalanceAfterTransaction(Bob,BobsBalance);
     }
 
-    function withdrawEtherCarol()public ifActivated {
+    function withdrawEtherCarol()public {
         require(Carol == msg.sender,"You are not Carol");
         Carol.transfer(CarolsBalance);
-    }
-
-    //withdraw all ether from contract
-    function withdrawAllEther()public ifActivated{
-        require(Alice == msg.sender,"You are not Alice");
-        Alice.transfer(uint(BobsBalance+CarolsBalance));
+        emit LogwithdrawEther(msg.sender,CarolsBalance);
+        CarolsBalance = 0;
+        emit LogBalanceAfterTransaction(Carol,CarolsBalance);
     }
 }

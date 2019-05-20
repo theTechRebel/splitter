@@ -3,11 +3,15 @@ pragma solidity ^0.5.0;
 import "./Owned.sol";
 
 contract Activatable is Owned{
-    bool internal activated; //current state of the contract
+    bool private activated; //current state of the contract
 
-    //upon instantiation set the contract to activated
-    constructor() public{
-        activated = true;
+    //log contract activation and deactivation
+    event LogActivateDeactivate(address sender, bool active);
+
+    //upon instantiation set the active state of the contract
+    constructor(bool activate) public{
+        activated = activate;
+        emit LogActivateDeactivate(msg.sender,activate);
     }
 
     //modifier function - only execute some features of contract is activated
@@ -23,13 +27,15 @@ contract Activatable is Owned{
     }
 
     //stops the contract only if the owner calls it and only if the contract is activated
-    function deactivateContract() public requireOwner ifActivated {
+    function deactivateContract() public ifAlive onlyOwner ifActivated {
         activated = false;
+        emit LogActivateDeactivate(msg.sender,activated);
     }
 
     //activates the contract only if the owner wills it
-    function activateContract() public requireOwner ifDeactivated{
+    function activateContract() public ifAlive onlyOwner ifDeactivated{
         activated = true;
+        emit LogActivateDeactivate(msg.sender,activated);
     }
 
     //get the current status of the contract
