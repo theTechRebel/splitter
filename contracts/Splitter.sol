@@ -17,7 +17,7 @@ contract Splitter is Activatable{
 
 
     //set the address of the contract when it is instantiated
-    constructor(address A, address payable B, address payable C) public {
+    constructor(address payable A, address payable B, address payable C) public {
         require(A!=B||A!=C||B!=C,"A,B,C have to be different addresses");
         splitterAddress = address(uint160(address(this)));
         Alice = A;
