@@ -4,14 +4,31 @@ import "./Owned.sol";
 
 contract Activatable is Owned{
     bool private activated; //current state of the contract
+    bool private killed; //is the contract dead
 
     //log contract activation and deactivation
     event LogActivateDeactivate(address sender, bool active);
+    //log contract activation and deactivation
+    event LogContractDeath(address sender, bool active);
 
     //upon instantiation set the active state of the contract
-    constructor(bool activate) public{
-        activated = activate;
-        emit LogActivateDeactivate(msg.sender,activate);
+    constructor(bool _activate) public{
+        activated = _activate;
+        killed = false;
+        emit LogActivateDeactivate(msg.sender,_activate);
+        emit LogContractDeath(msg.sender, false);
+    }
+
+    //modifier check if contract is alive
+    modifier ifAlive(){
+                require(killed,"Contract was killed");
+                _;
+            }
+
+    //kill the contract
+    function killContract() public ifAlive onlyOwner{
+        killed = true;
+        emit LogContractDeath(msg.sender,killed);
     }
 
     //modifier function - only execute some features of contract is activated

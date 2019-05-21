@@ -3,28 +3,13 @@ pragma solidity ^0.5.0;
 contract Owned{
     //identifies the owner of the contract / admin
     address private owner;
-    bool private killed; //is the contract dead
 
     //log when owner is changed
     event LogOwnerChanged(address sender, address owner);
-    //log contract activation and deactivation
-    event LogContractDeath(address sender, bool active);
-
-    modifier ifAlive(){
-            require(killed,"Contract was killed");
-            _;
-        }
-
-    function killContract() public ifAlive onlyOwner{
-        killed = true;
-        emit LogContractDeath(msg.sender,killed);
-    }
 
     //set the owner of the contract
     constructor() public{
         owner = msg.sender;
-        killed = false;
-        emit LogContractDeath(msg.sender,killed);
     }
 
     //a modifier that only the admin can do something
