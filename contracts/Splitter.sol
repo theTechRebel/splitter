@@ -14,8 +14,13 @@ contract Splitter is Activatable{
     uint public BobsBalance;
     uint public AlicesBalance;
 
+    //hold a map of addresses whose ether has been split
+    mapping (address => address) recievers;
+    mapping (address => uint) recieversBalances;
+
     event LogwithdrawEther(address sender,uint amount);
     event LogBalanceAfterTransaction(address reciever,uint amount);
+    event LogAnyoneCanSplitEther(address sender, address reciever1, address reciever2, uint amount);
 
 
     //check for validity & of addresses, and that addresses are different before setting addresses for parties in memory
@@ -87,5 +92,47 @@ contract Splitter is Activatable{
         uint _alicesBalance = AlicesBalance;
         AlicesBalance = 0;
         Carol.transfer(_alicesBalance);
+    }
+
+    //split ether between any 2 parties | requires contract to be Active & Alive
+    function splitEtherBetween2Recievers(address reciever1, address reciever2)public ifAlive ifActivated  payable{
+        require(reciever1 != address(0) && reciever2 != address(0),"Provide valid addresses"); //require valid addresses
+        require(reciever1 != reciever2,"Provide different addresses"); //require addresses to be different
+        require(msg.value>0,"You must send ether to split"); //require an amount to be sent
+        emit LogAnyoneCanSplitEther(msg.sender, reciever1, reciever2, msg.value); //log the transaction
+        if(recievers[msg.sender] == address(0)){
+            recievers[msg.sender] = msg.sender;
+            recieversBalances[msg.sender] = (msg.value%2);
+        }else{
+            recieversBalances[msg.sender] += (msg.value%2);
+        }
+
+        if(recievers[reciever1] == address(0)){
+            recievers[reciever1] = reciever1;
+            recieversBalances[reciever1] = (msg.value/2);
+        }else{
+            recieversBalances[reciever1] += (msg.value%2);
+        }
+
+        if(recievers[reciever2] == address(0)){
+            recievers[reciever2] = reciever2;
+            recieversBalances[reciever2] = (msg.value%2);
+        }else{
+            recieversBalances[reciever2] += (msg.value%2);
+        }
+
+        emit LogBalanceAfterTransaction(msg.sender,recieversBalances[msg.sender]);
+        emit LogBalanceAfterTransaction(reciever1,recieversBalances[reciever1]);
+        emit LogBalanceAfterTransaction(reciever2,recieversBalances[reciever2]);
+    }
+
+    //anyone sent ether can withdraw
+    function anyoneCanWithdraw() public{
+        require(recievers[msg.sender]!=address(0),"address must be in the contract"); //address must be one of the parties in the contract
+        require(recieversBalances[msg.sender]>0,"address must have ether in contract"); //address must have a balance in the contract
+         emit LogwithdrawEther(msg.sender,recieversBalances[msg.sender]);
+        uint _addressBalance = recieversBalances[msg.sender];
+        recieversBalances[msg.sender] = 0;
+        msg.sender.transfer(_addressBalance);
     }
 }
