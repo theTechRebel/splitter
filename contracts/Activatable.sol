@@ -21,12 +21,12 @@ contract Activatable is Owned{
 
     //modifier check if contract is alive
     modifier ifAlive(){
-                require(killed,"Contract was killed");
+                require(!killed,"Contract was killed");
                 _;
             }
 
     //kill the contract
-    function killContract() public ifAlive onlyOwner{
+    function killContract() public ifDeactivated onlyOwner{
         killed = true;
         emit LogContractDeath(msg.sender,killed);
     }
