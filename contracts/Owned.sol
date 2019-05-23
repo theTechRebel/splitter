@@ -5,7 +5,7 @@ contract Owned{
     address private owner;
 
     //log when owner is changed
-    event LogOwnerChanged(address sender, address owner);
+    event LogOwnerChanged(address indexed sender, address indexed owner);
 
     //set the owner of the contract
     constructor() public{

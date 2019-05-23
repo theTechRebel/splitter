@@ -7,9 +7,9 @@ contract Activatable is Owned{
     bool private killed; //is the contract dead
 
     //log contract activation and deactivation
-    event LogActivateDeactivate(address sender, bool active);
+    event LogActivateDeactivate(address indexed sender, bool indexed active);
     //log contract activation and deactivation
-    event LogContractDeath(address sender, bool active);
+    event LogContractDeath(address indexed sender, bool indexed active);
 
     //upon instantiation set the active state of the contract
     constructor(bool _activate) public{

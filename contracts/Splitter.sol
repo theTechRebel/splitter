@@ -9,8 +9,8 @@ contract Splitter is Activatable{
 
     constructor(bool _activated) Activatable(_activated) public{}
 
-    event LogBalanceWithdrawn(address sender,uint amount);
-    event LogBalanceCredited (address sender,address affectedAccount,uint amount);
+    event LogBalanceWithdrawn(address indexed sender,uint indexed amount);
+    event LogBalanceCredited (address indexed sender,address indexed affectedAccount,uint indexed amount);
 
     //split ether between any 2 parties | requires contract to be Active & Alive
     function splitEther(address reciever1, address reciever2)public ifAlive ifActivated  payable{
