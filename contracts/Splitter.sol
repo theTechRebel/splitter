@@ -7,6 +7,8 @@ contract Splitter is Activatable{
     //hold a map of addresses whose ether has been split
     mapping (address => uint) public recieversBalances;
 
+    constructor(bool _activated) Activatable(_activated) public{}
+
     event LogBalanceWithdrawn(address sender,uint amount);
     event LogBalanceCredited (address sender,address affectedAccount,uint amount);
 
