@@ -83,32 +83,27 @@ contract('Splitter',accounts=>{
     });
 
     it("should withdraw ether verifying gas price, transaction cost and amount", async()=>{
-      const ether = 43;
-        var txObj = await instance.splitEther(reciever1,reciever2,{from:unauthorised,value:ether});
-        assert.isTrue(txObj.receipt.status,"receipt status must be true");
-        var acc1 = await instance.recieversBalances.call(reciever1);
-        assert.equal(acc1.toString(),Math.floor((ether/2)),"failed to split ether equaly");
+        //step 1: split ether - deposit
+        const ether = 43;
+        await instance.splitEther(reciever1,reciever2,{from:unauthorised,value:ether});
 
-        const receiver_old_bal = web3.utils.toBN(await web3.eth.getBalance(reciever1));
-        txObj = await instance.withdraw({from:reciever1});
-        assert.isTrue(txObj.receipt.status,"receipt status must be true");
-        //check event
-        const event = getEventResult(txObj,"LogBalanceWithdrawn");
-        assert.equal(event.sender,reciever1,"address must be the withdrawer");
-        assert.equal(event.amount,acc1.toString(),"withdrawn ether must be ether in wallet");
+        //step 2: withdraw ether
+        const oldBalance = web3.utils.toBN(await web3.eth.getBalance(reciever1)); //current balance before withdrawal
+        const withdrawnAmount = web3.utils.toBN(await instance.recieversBalances.call(reciever1)); //amount in contract before withdrawal
+        const txObj = await instance.withdraw({from:reciever1}); //withdraw
 
-        // get transaction gas price
-        const tx = await web3.eth.getTransaction(txObj.tx);
-        const gasPrice = web3.utils.toBN(tx.gasPrice);
-        // transaction cost
-        const txCost = web3.utils.toBN(txObj.receipt.gasUsed).mul(gasPrice);
-        const receiver_new_bal = web3.utils.toBN(await web3.eth.getBalance(reciever1));
+        //step 3: calculate transaction cost
+        const transaction =  await web3.eth.getTransaction(txObj.tx);
+        // transaction cost = gasUsed x gasPrice
+        const txCost = web3.utils.toBN(txObj.receipt.gasUsed).mul(web3.utils.toBN(transaction.gasPrice));
+        
+        //step 4: calculate new balance
+          //new balance = old balance - tx fee + withdrawn amount.
+        const newBalance = oldBalance.sub(txCost).add(withdrawnAmount);
+          //get new balance in wallet for comparison
+        const walletBalance = await web3.eth.getBalance(reciever1);
 
-        // calculate received amount 
-        const recieved = receiver_new_bal.add(txCost).sub(receiver_old_bal);
-
-        // test amount received must be correct
-        assert.strictEqual(acc1.toString(),recieved.toString(),"reciever shoudl recieve " + acc1
-        );
+        // test new balance must be equal to wallet balance
+        assert.strictEqual(newBalance.toString(),walletBalance.toString(),"recievers new balance should equal balance in wallet");
     });
 });
