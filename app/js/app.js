@@ -78,20 +78,80 @@ App = {
     console.log(acc2);
     console.log(ether);
 
-    var contract = await Splitter.deployed();
-    var txn = await contract.splitEther(acc1,acc2,{from:window.account,value:ether});
-    console.log(txn);
-    App.getContractBalance();
+    Splitter.deployed().then(contract=>{
+      contract.splitEther.call(acc1,acc2,{from:window.account,value:ether})
+      .then(result=>{
+        console.log(result);
+      contract.splitEther(acc1,acc2,{from: window.account,value:ether})
+      .on('transactionHash', (hash) => {
+          var msg =  "<div class='alert alert-primary' role='alert'>Your transaction with Hash"+hash+" is on its way!</div>";
+          $("#msg").html(msg);
+      })
+      .on('confirmation', (confirmationNumber, receipt) => {
+        var msg =  "<div class='alert alert-primary' role='alert'>Your transaction has been confirmed with: "+confirmationNumber+"</div>";
+        $("#msg").html(msg);
+        console.log(receipt);
+      })
+      .on('receipt', (receipt) => {
+        if(receipt.status == 1){
+          var msg =  "<div class='alert alert-success' role='alert'>Transaction was succesful</div>";
+          $("#msg").html(msg);
+        }else{
+          var msg =  "<div class='alert alert-danger' role='alert'>Transaction has failed</div>";
+          $("#msg").html(msg);
+        }
+          console.log(receipt);
+          App.getContractBalance();
+      })
+      .on('error', (error)=>{
+        var msg =  "<div class='alert alert-danger' role='alert'>Transaction failed due to: "+error+"</div>";
+          $("#msg").html(msg);
+      });
+      
+      },error=>{
+        console.log(error);
+        var msg =  "<div class='alert alert-danger' role='alert'>Transaction failed due to: "+error+"</div>";
+          $("#msg").html(msg);
+      })
+    });
   },
   handleWithdraw: async function(){
-    var contract = await Splitter.deployed();
     console.log(window.account);
-    var txn = await contract.withdraw({from:window.account});
-    //var txn = await contract.withdraw.sendTransaction({from:address});
-    console.log(txn);
-    App.getContractBalance();
+    Splitter.deployed().then(contract=>{
+      contract.withdraw.call({from:window.account}).then(success=>{
+        console.log(success);
+        contract.withdraw({from:window.account})
+        .on('transactionHash', (hash) => {
+          var msg =  "<div class='alert alert-primary' role='alert'>Your transaction with Hash"+hash+" is on its way!</div>";
+          $("#msg").html(msg);
+      })
+      .on('confirmation', (confirmationNumber, receipt) => {
+        var msg =  "<div class='alert alert-primary' role='alert'>Your transaction has been confirmed with: "+confirmationNumber+"</div>";
+        $("#msg").html(msg);
+        console.log(receipt);
+      })
+      .on('receipt', (receipt) => {
+        if(receipt.status == 1){
+          var msg =  "<div class='alert alert-success' role='alert'>Transaction was succesful</div>";
+          $("#msg").html(msg);
+        }else{
+          var msg =  "<div class='alert alert-danger' role='alert'>Transaction has failed</div>";
+          $("#msg").html(msg);
+        }
+          console.log(receipt);
+          App.getContractBalance();
+      },error=>{
+        var msg =  "<div class='alert alert-danger' role='alert'>Transaction failed due to: "+error+"</div>";
+          $("#msg").html(msg);
+      })
+    },error=>{
+      console.log(error);
+        var msg =  "<div class='alert alert-danger' role='alert'>Transaction failed due to: "+error+"</div>";
+          $("#msg").html(msg);
+    })
+  });
   }
-  };
+};
   
   $(window).on('load', function() {
     App.init();
