@@ -14,7 +14,6 @@ contract Activatable is Owned{
     //upon instantiation set the active state of the contract
     constructor(bool _activate) public{
         activated = _activate;
-        killed = false;
         emit LogActivateDeactivate(msg.sender,_activate);
         emit LogContractDeath(msg.sender, false);
     }
