@@ -78,11 +78,11 @@ App = {
     console.log(acc2);
     console.log(ether);
 
-    Splitter.deployed().then(contract=>{
-      contract.splitEther.call(acc1,acc2,{from:window.account,value:ether})
-      .then(result=>{
-        console.log(result);
-      contract.splitEther(acc1,acc2,{from: window.account,value:ether})
+    var contract = await Splitter.deployed();
+    var call = await contract.splitEther.call(acc1,acc2,{from:window.account,value:ether});
+    console.log(call);
+    if(call){
+    await contract.splitEther(acc1,acc2,{from: window.account,value:ether})
       .on('transactionHash', (hash) => {
           var msg =  "<div class='alert alert-primary' role='alert'>Your transaction with Hash"+hash+" is on its way!</div>";
           $("#msg").html(msg);
@@ -107,21 +107,19 @@ App = {
         var msg =  "<div class='alert alert-danger' role='alert'>Transaction failed due to: "+error+"</div>";
           $("#msg").html(msg);
       });
+    }else{
+      console.log(call);
+    }
       
-      },error=>{
-        console.log(error);
-        var msg =  "<div class='alert alert-danger' role='alert'>Transaction failed due to: "+error+"</div>";
-          $("#msg").html(msg);
-      })
-    });
   },
   handleWithdraw: async function(){
     console.log(window.account);
-    Splitter.deployed().then(contract=>{
-      contract.withdraw.call({from:window.account}).then(success=>{
-        console.log(success);
-        contract.withdraw({from:window.account})
-        .on('transactionHash', (hash) => {
+    var contract = await Splitter.deployed();
+    var call = await contract.withdraw.call({from:window.account});
+    console.log(call);
+    if(call){
+      await contract.withdraw({from:window.account})
+      .on('transactionHash', (hash) => {
           var msg =  "<div class='alert alert-primary' role='alert'>Your transaction with Hash"+hash+" is on its way!</div>";
           $("#msg").html(msg);
       })
@@ -144,12 +142,9 @@ App = {
         var msg =  "<div class='alert alert-danger' role='alert'>Transaction failed due to: "+error+"</div>";
           $("#msg").html(msg);
       })
-    },error=>{
-      console.log(error);
-        var msg =  "<div class='alert alert-danger' role='alert'>Transaction failed due to: "+error+"</div>";
-          $("#msg").html(msg);
-    })
-  });
+    }else{
+      console.log(call);
+    }
   }
 };
   

@@ -1,9 +1,10 @@
 pragma solidity ^0.5.0;
 
 import "./Activatable.sol";
+import 'node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract Splitter is Activatable{
-
+    using SafeMath for uint;
     //hold a map of addresses whose ether has been split
     mapping (address => uint) public recieversBalances;
 
@@ -18,9 +19,9 @@ contract Splitter is Activatable{
         require(reciever1 != reciever2,"Provide different addresses"); //require addresses to be different
         require(msg.value>0,"You must send ether to split"); //require an amount to be sent
 
-        recieversBalances[msg.sender] = recieversBalances[msg.sender]+(msg.value%2);
-        recieversBalances[reciever1] = recieversBalances[reciever1]+(msg.value/2);
-        recieversBalances[reciever2] = recieversBalances[reciever2]+(msg.value/2);
+        recieversBalances[msg.sender] = recieversBalances[msg.sender]+(msg.value.mod(2));
+        recieversBalances[reciever1] = recieversBalances[reciever1]+(msg.value.div(2));
+        recieversBalances[reciever2] = recieversBalances[reciever2]+(msg.value.div(2));
 
         emit LogBalanceCredited(msg.sender,msg.sender,recieversBalances[msg.sender]);
         emit LogBalanceCredited(msg.sender,reciever1,recieversBalances[reciever1]);
